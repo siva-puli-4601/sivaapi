@@ -7,10 +7,11 @@ const YouTubeTranscriptApi = require('youtube-transcript-api');
 const readline = require('readline');
 
 // Configure API keys
-const genAI = new GoogleGenerativeAI('AIzaSyAIewGMqAtMEtZMZjDJgEPNEwh_Q74yfGw');
+const genAI = new GoogleGenerativeAI('API_KEY');
 
 // Function to download and rename audio
 function downloadAndRenameAudio(url, newName = 'audio1') {
+    //console.log("hello");
   return new Promise((resolve, reject) => {
     const command = `yt-dlp --extract-audio --audio-format mp3 --output "${newName}.%(ext)s" ${url}`;
     exec(command, (error, stdout, stderr) => {
@@ -31,7 +32,7 @@ function downloadAndRenameAudio(url, newName = 'audio1') {
       }
       
       const newFilePath = `./${audioFile}`;
-      console.log(`New file path: ${newFilePath}`);
+     // console.log(`New file path: ${newFilePath}`);
       resolve(newFilePath);
     });
   });
@@ -39,15 +40,16 @@ function downloadAndRenameAudio(url, newName = 'audio1') {
 
 // Function to get transcript text
 async function getTranscriptText(videoId) {
+    
   try {
     const transcript = await YouTubeTranscriptApi.getTranscript(videoId, { lang: 'en' });
     const transcriptText = transcript.map(entry => entry.text).join(' ');
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    await downloadAndRenameAudio(videoUrl);
     return transcriptText;
   } catch (error) {
     console.error('Error occurred while getting transcript');
     console.log('Using OpenAI to convert the YouTube video into text');
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    await downloadAndRenameAudio(videoUrl);
     // The audio file will be saved as 'audio1.mp3'
     return null;
   }
@@ -65,7 +67,7 @@ const question = (query) => new Promise((resolve) => rl.question(query, resolve)
 // Main function to run the process
 async function main() {
   try {
-    const transcriptText = await getTranscriptText('_Ki4bS4V2gQ');
+    const transcriptText = await getTranscriptText('TeeAp5zkYnI');
 
     let knowledgeBase;
     if (transcriptText) {
@@ -83,7 +85,7 @@ async function main() {
       knowledgeBase = resp.data.text;
     }
 
-    console.log('Knowledge base:', knowledgeBase);
+   console.log('Knowledge base:', knowledgeBase);
 
     // Taking question as input
     const userQuestion = await question('Enter your question: ');
